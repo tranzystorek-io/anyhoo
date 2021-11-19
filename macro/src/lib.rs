@@ -1,6 +1,8 @@
+mod helpers;
+
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, parse_quote, Block, ItemFn, ReturnType, Stmt};
+use syn::{parse_macro_input, ItemFn};
 
 #[proc_macro_attribute]
 pub fn anyhoo(_attr: TokenStream, input: TokenStream) -> TokenStream {
@@ -11,17 +13,9 @@ pub fn anyhoo(_attr: TokenStream, input: TokenStream) -> TokenStream {
         block,
     } = parse_macro_input!(input);
 
-    sig.output = match &sig.output {
-        ReturnType::Default => parse_quote! { -> ::anyhoo::anyhow::Result<()> },
-        ReturnType::Type(_, ty) => parse_quote! { -> ::anyhoo::anyhow::Result<#ty> },
-    };
+    helpers::change_output(&mut sig.output);
 
-    let okified_block: Block = match block.stmts.as_slice() {
-        [all @ .., Stmt::Expr(last)] => {
-            parse_quote!( { #(#all)* ::anyhoo::anyhow::Result::Ok(#last) } )
-        }
-        all => parse_quote!( { #(#all)* ::anyhoo::anyhow::Result::Ok(()) } ),
-    };
+    let okified_block = helpers::okified_block(&block.stmts);
 
     let result = quote! { #(#attrs)* #vis #sig #okified_block };
 
