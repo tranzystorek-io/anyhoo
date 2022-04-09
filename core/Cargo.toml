@@ -7,7 +7,7 @@ readme = "../README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-reexport = ["anyhow", "anyhoo-macro/reexport"]
+reexport = ["dep:anyhow", "anyhoo-macro/reexport"]
 
 [dependencies]
 anyhoo-macro = { path = "../macro" }
